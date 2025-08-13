@@ -19,6 +19,7 @@ import interstellarPoster from "@/assets/interstellar-poster.jpg";
 import pulpFictionPoster from "@/assets/pulp-fiction-poster.jpg";
 import matrixPoster from "@/assets/matrix-poster.jpg";
 import fightClubPoster from "@/assets/fight-club-poster.jpg";
+
 const Index = () => {
   const [weatherCondition, setWeatherCondition] = useState<'sunny' | 'cloudy' | 'rainy' | 'stormy' | 'snowy'>('sunny');
 
@@ -84,7 +85,7 @@ const Index = () => {
     streamingApps.length,
     movies.length,
     4, // Continue watching count
-    3, // Carousel items count
+    4, // Updated carousel items count to 4
     5  // Navigation items count (nav + time + weather)
   );
 
@@ -114,8 +115,6 @@ const Index = () => {
         <div className="w-full">
           <TVCarousel />
         </div>
-        {/* Fade overlay at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none" />
       </section>
       
       {/* Streaming Apps Section */}
@@ -181,4 +180,5 @@ const Index = () => {
       </section>
     </div>;
 };
+
 export default Index;
