@@ -5,7 +5,6 @@ import MovieCard from "@/components/MovieCard";
 import WeatherWidget from "@/components/WeatherWidget";
 import WeatherBackground from "@/components/WeatherBackground";
 import UnifiedHeader from "@/components/UnifiedHeader";
-import ImageGenerator from "@/components/ImageGenerator";
 import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 
 // Import images
@@ -23,18 +22,11 @@ import fightClubPoster from "@/assets/fight-club-poster.jpg";
 
 const Index = () => {
   const [weatherCondition, setWeatherCondition] = useState<'sunny' | 'cloudy' | 'rainy' | 'stormy' | 'snowy'>('sunny');
-  const [carouselImages, setCarouselImages] = useState<string[]>([]);
-  const [showImageGenerator, setShowImageGenerator] = useState(true);
 
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  const handleImagesGenerated = (images: string[]) => {
-    setCarouselImages(images);
-    setShowImageGenerator(false);
-  };
 
   const streamingApps = [{
     name: "Netflix",
@@ -106,11 +98,6 @@ const Index = () => {
       {/* Weather Background Animations */}
       <WeatherBackground condition={weatherCondition} />
       
-      {/* Image Generator */}
-      {showImageGenerator && (
-        <ImageGenerator onImagesGenerated={handleImagesGenerated} />
-      )}
-      
       {/* Unified Header */}
       <header>
         <UnifiedHeader 
@@ -126,7 +113,7 @@ const Index = () => {
         className="relative mb-12"
       >
         <div className="w-full">
-          <TVCarousel customImages={carouselImages} />
+          <TVCarousel />
         </div>
       </section>
       

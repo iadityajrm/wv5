@@ -12,11 +12,7 @@ interface CarouselItem {
   category: string;
 }
 
-interface TVCarouselProps {
-  customImages?: string[];
-}
-
-const defaultCarouselItems: CarouselItem[] = [
+const carouselItems: CarouselItem[] = [
   {
     id: 1,
     title: "Smart Restaurant Ordering",
@@ -47,17 +43,9 @@ const defaultCarouselItems: CarouselItem[] = [
   }
 ];
 
-const TVCarousel: React.FC<TVCarouselProps> = ({ customImages }) => {
+const TVCarousel: React.FC = () => {
   const [api, setApi] = React.useState<CarouselApi>();
   const autoScrollRef = useRef<NodeJS.Timeout>();
-
-  // Create carousel items with custom images if provided
-  const carouselItems = customImages && customImages.length === 4 
-    ? defaultCarouselItems.map((item, index) => ({
-        ...item,
-        image: customImages[index]
-      }))
-    : defaultCarouselItems;
 
   useEffect(() => {
     if (!api) return;
