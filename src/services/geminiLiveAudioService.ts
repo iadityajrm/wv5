@@ -369,6 +369,11 @@ export class GeminiLiveAudioService {
     this.onResponseCallback = onResponse;
 
     try {
+      // Check for media devices support before initializing
+      if (!this.checkMediaDevicesSupport()) {
+        throw new Error('Media Devices API not supported in this browser. Please use a modern browser with HTTPS.');
+      }
+
       // Initialize audio contexts
       this.inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
         sampleRate: 16000,
@@ -473,8 +478,7 @@ export class GeminiLiveAudioService {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Orus' } },
           },
           tools: [{ functionDeclarations }],
-          // Enable Google Search grounding for better function calling
-          systemInstruction: undefined, // Removed per community recommendation
+          systemInstruction: undefined,
         },
       });
 
@@ -484,6 +488,27 @@ export class GeminiLiveAudioService {
     }
   }
 
+  private checkMediaDevicesSupport(): boolean {
+    // Check if navigator.mediaDevices exists
+    if (!navigator.mediaDevices) {
+      console.error('navigator.mediaDevices is not supported in this browser');
+      return false;
+    }
+
+    // Check if getUserMedia exists
+    if (!navigator.mediaDevices.getUserMedia) {
+      console.error('navigator.mediaDevices.getUserMedia is not supported in this browser');
+      return false;
+    }
+
+    // Check if we're on HTTPS (required for microphone access)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      console.error('Microphone access requires HTTPS connection');
+      return false;
+    }
+
+    return true;
+  }
 
   private async handleFunctionCall(toolCall: any): Promise<void> {
     console.log('Processing function call:', toolCall);
@@ -1072,6 +1097,12 @@ export class GeminiLiveAudioService {
     if (!this.inputAudioContext) return;
 
     try {
+      // Double-check media devices support
+      if (!this.checkMediaDevicesSupport()) {
+        throw new Error('Media Devices API not available - microphone input disabled');
+      }
+
+      console.log('Requesting microphone access...');
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -1081,45 +1112,77 @@ export class GeminiLiveAudioService {
         },
       });
 
+      console.log('Microphone access granted, setting up audio processing...');
+
       this.sourceNode = this.inputAudioContext.createMediaStreamSource(this.mediaStream);
       this.sourceNode.connect(this.inputNode!);
 
-      // Load AudioWorklet processor or use fallback
-      try {
-        await this.inputAudioContext.audioWorklet.addModule('/audio-processor.js');
-        this.audioWorkletNode = new AudioWorkletNode(this.inputAudioContext, 'audio-processor');
-        
-        this.audioWorkletNode.port.onmessage = (event) => {
-          if (this.isMuted || !this.session) return;
+      // Check for AudioWorklet support
+      const supportsAudioWorklet = 'audioWorklet' in this.inputAudioContext;
+      console.log('AudioWorklet supported:', supportsAudioWorklet);
+
+      if (supportsAudioWorklet) {
+        try {
+          await this.inputAudioContext.audioWorklet.addModule('/audio-processor.js');
+          this.audioWorkletNode = new AudioWorkletNode(this.inputAudioContext, 'audio-processor');
           
-          const pcmData = event.data;
-          this.session.sendRealtimeInput({ media: createBlob(pcmData) });
-        };
+          this.audioWorkletNode.port.onmessage = (event) => {
+            if (this.isMuted || !this.session) return;
+            
+            const pcmData = event.data;
+            this.session.sendRealtimeInput({ media: createBlob(pcmData) });
+          };
 
-        this.sourceNode.connect(this.audioWorkletNode);
-        this.audioWorkletNode.connect(this.inputAudioContext.destination);
-      } catch (error) {
-        console.warn('AudioWorklet not supported, using fallback');
-        // Fallback for older browsers
-        const bufferSize = 256;
-        const scriptProcessor = this.inputAudioContext.createScriptProcessor(bufferSize, 1, 1);
-        
-        scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
-          if (this.isMuted || !this.session) return;
-          const inputBuffer = audioProcessingEvent.inputBuffer;
-          const pcmData = inputBuffer.getChannelData(0);
-          this.session.sendRealtimeInput({ media: createBlob(pcmData) });
-        };
-
-        this.sourceNode.connect(scriptProcessor);
-        scriptProcessor.connect(this.inputAudioContext.destination);
+          this.sourceNode.connect(this.audioWorkletNode);
+          this.audioWorkletNode.connect(this.inputAudioContext.destination);
+          console.log('Using AudioWorkletNode for audio processing');
+        } catch (error) {
+          console.warn('AudioWorklet failed to load, falling back to ScriptProcessorNode:', error);
+          this.setupFallbackAudioProcessing();
+        }
+      } else {
+        console.log('AudioWorklet not supported, using ScriptProcessorNode fallback');
+        this.setupFallbackAudioProcessing();
       }
 
       console.log('Audio input setup complete');
     } catch (error) {
       console.error('Error setting up audio input:', error);
+      
+      // Provide user-friendly error messages
+      if (error instanceof Error) {
+        if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          throw new Error('No microphone found. Please connect a microphone and try again.');
+        } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          throw new Error('Microphone access denied. Please allow microphone access and try again.');
+        } else if (error.name === 'NotSupportedError') {
+          throw new Error('Microphone not supported in this browser. Please use a modern browser with HTTPS.');
+        } else if (error.message.includes('Media Devices API')) {
+          throw new Error('This browser does not support microphone access. Please use Chrome, Firefox, Safari, or Edge with HTTPS.');
+        }
+      }
+      
       throw error;
     }
+  }
+
+  private setupFallbackAudioProcessing(): void {
+    if (!this.sourceNode || !this.inputAudioContext) return;
+
+    console.log('[Deprecation Warning] Using ScriptProcessorNode - consider upgrading to a browser that supports AudioWorkletNode');
+    
+    const bufferSize = 256;
+    const scriptProcessor = this.inputAudioContext.createScriptProcessor(bufferSize, 1, 1);
+    
+    scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
+      if (this.isMuted || !this.session) return;
+      const inputBuffer = audioProcessingEvent.inputBuffer;
+      const pcmData = inputBuffer.getChannelData(0);
+      this.session.sendRealtimeInput({ media: createBlob(pcmData) });
+    };
+
+    this.sourceNode.connect(scriptProcessor);
+    scriptProcessor.connect(this.inputAudioContext.destination);
   }
 
   async mute(): Promise<void> {
