@@ -17,28 +17,28 @@ const carouselItems: CarouselItem[] = [
     id: 1,
     title: "Smart Restaurant Ordering",
     description: "Experience seamless dining with Atlas AI. Simply speak your order naturally and let our intelligent assistant handle menu recommendations, dietary preferences, and complete order processing with restaurant systems.",
-    image: "/lovable-uploads/ef5a1f6f-4ce1-4183-9610-66d923750591.png",
+    image: "/src/images/cimg1.png",
     category: "Restaurant AI"
   },
   {
     id: 2,
     title: "Home Assistant Control",
     description: "Transform your smart home experience with Atlas. Control lights, temperature, security systems, and entertainment devices through natural conversation. Your home responds intelligently to your voice commands.",
-    image: "/lovable-uploads/8acfad30-aa90-4edd-b779-aafd43058584.png",
+    image: "/src/images/cimg2.png",
     category: "Smart Home"
   },
   {
     id: 3,
     title: "Intelligent Function Calling",
     description: "Atlas leverages advanced Gemini AI to understand context and execute complex multi-step tasks. From booking appointments to managing calendars, experience the future of AI-powered automation.",
-    image: "/lovable-uploads/ada582c7-709e-480e-8494-1461b602567c.png",
+    image: "/src/images/cimg1.png",
     category: "AI Automation"
   },
   {
     id: 4,
     title: "Voice-Powered Navigation",
     description: "Navigate through applications effortlessly with Atlas voice control. Switch between apps, search content, and control your entertainment system using natural speech recognition technology.",
-    image: "/lovable-uploads/47497b1d-b110-4737-abe3-ebf01ae8c243.png",
+    image: "/src/images/cimg2.png",
     category: "Voice Control"
   }
 ];
@@ -104,7 +104,7 @@ const TVCarousel: React.FC = () => {
       <CarouselContent>
         {carouselItems.map(item => (
           <CarouselItem key={item.id}>
-            <Card className="relative overflow-hidden border-none bg-transparent">
+            <Card className="relative overflow-hidden border-none bg-transparent rounded-none">
               <div className="relative h-[500px] w-full">
                 {/* Background image */}
                 <img 
