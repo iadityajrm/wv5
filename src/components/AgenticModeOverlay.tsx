@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Download, Copy, Check } from 'lucide-react';
 import { geminiFlashService, AgenticContent } from '@/services/geminiFlashService';
 import { generateQRCode, generateContentUrl } from '@/utils/qrCodeGenerator';
-import { toast } from 'sonner';
 
 interface AgenticModeOverlayProps {
   isOpen: boolean;
@@ -59,11 +58,8 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
       const contentUrl = generateContentUrl(generatedContent.formattedContent);
       const qrUrl = generateQRCode(contentUrl);
       setQrCodeUrl(qrUrl);
-      
-      toast.success('Content generated successfully!');
     } catch (error) {
       console.error('Error generating content:', error);
-      toast.error('Failed to generate content. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -80,10 +76,9 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
       try {
         await navigator.clipboard.writeText(content.content);
         setCopied(true);
-        toast.success('Content copied to clipboard!');
         setTimeout(() => setCopied(false), 2000);
       } catch (error) {
-        toast.error('Failed to copy content');
+        console.error('Failed to copy content');
       }
     }
   };
@@ -133,7 +128,6 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success('Content downloaded successfully!');
     }
   };
 
@@ -141,7 +135,7 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm">
-      <div className="absolute inset-0 flex items-end justify-center px-4">
+      <div className="absolute inset-0 flex items-end justify-center">
         <div 
           ref={overlayRef}
           className="bg-zinc-900 rounded-t-2xl shadow-2xl w-full max-w-6xl h-[88vh] overflow-hidden border-t border-l border-r border-zinc-700 focus:outline-none flex flex-col"
@@ -210,7 +204,7 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
           {/* Content */}
           <div 
             ref={contentRef}
-            className="flex-1 overflow-y-auto px-8 py-6 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800"
+            className="flex-1 overflow-y-auto px-8 py-6"
           >
             {loading ? (
               <div className="flex items-center justify-center h-full">

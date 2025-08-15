@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 
@@ -18,7 +19,7 @@ const TVAppCard: React.FC<TVAppCardProps> = ({ name, icon, url, className, style
   return (
     <Card 
       onClick={handleClick}
-      className={`relative overflow-hidden glassmorphism bg-psyco-black-light/20 border-psyco-green-DEFAULT/20 transition-all duration-300 cursor-pointer group card-hover w-52 h-32 ${
+      className={`relative overflow-hidden glassmorphism bg-psyco-black-light/20 border-transparent transition-all duration-300 cursor-pointer group card-hover w-52 h-32 ${
         focused ? 'border-white border-2 scale-105' : 'hover:border-psyco-green-DEFAULT/50'
       } ${className}`}
       style={style}
