@@ -29,12 +29,12 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
   useEffect(() => {
     if (isOpen && task) {
       generateContent();
-      // Focus the overlay when it opens
+      // Focus the overlay when it opens with a small delay to ensure it's rendered
       setTimeout(() => {
         if (overlayRef.current) {
           overlayRef.current.focus();
         }
-      }, 100);
+      }, 150);
     }
   }, [isOpen, task]);
 
@@ -43,13 +43,14 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
       // Trigger fade-in animation after content is loaded
       setTimeout(() => {
         setShowContent(true);
-      }, 100);
+      }, 200);
     }
   }, [content, loading]);
 
   const generateContent = async () => {
     setLoading(true);
     setShowContent(false);
+    setContent(null);
     try {
       const generatedContent = await geminiFlashService.generateContent(task, contentType);
       setContent(generatedContent);
@@ -140,15 +141,15 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm">
-      <div className="absolute inset-0 flex items-end justify-center">
+      <div className="absolute inset-0 flex items-end justify-center px-4">
         <div 
           ref={overlayRef}
-          className="bg-zinc-900 rounded-t-2xl shadow-2xl w-full max-w-7xl h-[85vh] overflow-hidden border-t border-l border-r border-zinc-700 focus:outline-none"
-          tabIndex={-1}
+          className="bg-zinc-900 rounded-t-2xl shadow-2xl w-full max-w-6xl h-[88vh] overflow-hidden border-t border-l border-r border-zinc-700 focus:outline-none flex flex-col"
+          tabIndex={0}
           onKeyDown={handleKeyDown}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-zinc-700">
+          <div className="flex items-center justify-between p-6 border-b border-zinc-700 flex-shrink-0">
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-white">
                 {loading ? (
@@ -209,10 +210,10 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
           {/* Content */}
           <div 
             ref={contentRef}
-            className="p-8 overflow-y-auto h-full scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800"
+            className="flex-1 overflow-y-auto px-8 py-6 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800"
           >
             {loading ? (
-              <div className="flex items-center justify-center py-20">
+              <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <p className="text-zinc-400 text-lg animate-pulse">
                     Atlas is generating your {contentType}...
@@ -221,25 +222,18 @@ const AgenticModeOverlay: React.FC<AgenticModeOverlayProps> = ({
                 </div>
               </div>
             ) : content ? (
-              <div 
-                className={`prose prose-invert max-w-none transition-all duration-1000 ${
-                  showContent 
-                    ? 'opacity-100 translate-x-0' 
-                    : 'opacity-0 -translate-x-8'
-                }`}
-              >
+              <div className="prose prose-invert max-w-none">
                 <div 
-                  className="text-zinc-200 leading-relaxed animate-fade-in"
+                  className={`text-zinc-200 leading-relaxed transition-all duration-1000 ease-out ${
+                    showContent 
+                      ? 'opacity-100 translate-y-0' 
+                      : 'opacity-0 translate-y-4'
+                  }`}
                   dangerouslySetInnerHTML={{ __html: content.formattedContent }}
-                  style={{
-                    animationDelay: showContent ? '0s' : '2s',
-                    animationDuration: '1.5s',
-                    animationFillMode: 'both'
-                  }}
                 />
               </div>
             ) : (
-              <div className="text-center py-20">
+              <div className="flex items-center justify-center h-full">
                 <p className="text-zinc-400">Failed to generate content. Please try again.</p>
               </div>
             )}
