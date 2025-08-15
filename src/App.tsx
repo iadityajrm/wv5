@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,8 @@ import References from "./pages/References";
 import Booking from "./pages/Booking";
 import NotFound from "./pages/NotFound";
 import AIOrb from "./components/AIOrb";
+import AgenticModeOverlay from "./components/AgenticModeOverlay";
+import { useAgenticMode } from "./hooks/useAgenticMode";
 
 const queryClient = new QueryClient();
 
@@ -75,35 +76,47 @@ const AIGlobalState = () => {
   return null;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <NavigationEventListener />
-        <AIGlobalState />
-        <main className="min-h-screen bg-black">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/apps" element={<Apps />} />
-            <Route path="/restaurant" element={<Restaurant />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/booking" element={<Booking />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogDetail />} />
-            <Route path="/references" element={<References />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          
-          {/* Global AI Orb - persists across all pages */}
-          <div className="fixed top-6 right-6 z-50">
-            <AIOrb />
-          </div>
-        </main>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const agenticMode = useAgenticMode();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <NavigationEventListener />
+          <AIGlobalState />
+          <main className="min-h-screen bg-black">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/apps" element={<Apps />} />
+              <Route path="/restaurant" element={<Restaurant />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/booking" element={<Booking />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogDetail />} />
+              <Route path="/references" element={<References />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            
+            {/* Global AI Orb - persists across all pages */}
+            <div className="fixed top-6 right-6 z-50">
+              <AIOrb />
+            </div>
+
+            {/* Agentic Mode Overlay */}
+            <AgenticModeOverlay
+              isOpen={agenticMode.isOpen}
+              onClose={agenticMode.closeAgenticMode}
+              task={agenticMode.task}
+              contentType={agenticMode.contentType}
+            />
+          </main>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

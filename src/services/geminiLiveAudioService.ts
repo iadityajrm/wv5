@@ -335,6 +335,25 @@ const functionDeclarations = [
       properties: {},
       required: []
     }
+  },
+  // Agentic Mode Function
+  {
+    name: "activate_agentic_mode",
+    description: "Activate agentic mode to generate detailed content like letters, documents, suggestions, or any written content based on user request",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        task: {
+          type: Type.STRING,
+          description: "The specific task or request from the user (e.g., 'Write a letter to the Manager requesting 2 days holiday', 'Generate a business proposal', 'Create a shopping list')"
+        },
+        contentType: {
+          type: Type.STRING,
+          description: "Type of content to generate (e.g., 'letter', 'document', 'list', 'suggestion', 'report')"
+        }
+      },
+      required: ["task", "contentType"]
+    }
   }
 ];
 
@@ -620,6 +639,10 @@ export class GeminiLiveAudioService {
         break;
       case 'get_restaurant_menu':
         result = this.getRestaurantMenu();
+        break;
+      // Agentic mode function call
+      case 'activate_agentic_mode':
+        result = await this.activateAgenticMode(args.task, args.contentType);
         break;
       default:
         console.log('Unknown function call:', functionName);
@@ -1091,6 +1114,36 @@ export class GeminiLiveAudioService {
       success: true, 
       message: menuText
     };
+  }
+
+  private async activateAgenticMode(task: string, contentType: string): Promise<{ success: boolean; message: string }> {
+    console.log('Activating agentic mode for task:', task, 'type:', contentType);
+    
+    try {
+      // Dispatch event to trigger agentic mode overlay
+      const agenticEvent = new CustomEvent('activate-agentic-mode', {
+        detail: { task, contentType }
+      });
+      window.dispatchEvent(agenticEvent);
+      
+      if (this.onResponseCallback) {
+        this.onResponseCallback(`Generating ${contentType} for you...`);
+      }
+      
+      return { 
+        success: true, 
+        message: `Agentic mode activated for ${contentType} generation` 
+      };
+    } catch (error) {
+      console.error('Failed to activate agentic mode:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      if (this.onResponseCallback) {
+        this.onResponseCallback(`Failed to activate agentic mode: ${errorMessage}`);
+      }
+      
+      return { success: false, message: errorMessage };
+    }
   }
 
   private async setupAudioInput(): Promise<void> {
